@@ -14,7 +14,7 @@ function RootNavigator() {
 
     const inAuthGroup = segments[0] === "(auth)";
 
-    // 🚨 Not logged in → force auth screens
+    //Not logged in → force auth screens
     if (!user && !inAuthGroup) {
       router.replace("/(auth)/login");
     }
