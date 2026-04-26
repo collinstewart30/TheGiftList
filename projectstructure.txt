@@ -1,0 +1,54 @@
+app/
+│
+├── _layout.tsx
+├── modal.tsx
+│
+├── (auth)/
+│   ├── _layout.tsx
+│   ├── login.tsx
+│   └── signup.tsx
+│
+├── (tabs)/
+│   ├── _layout.tsx
+│   ├── index.tsx              ← Home dashboard
+│   ├── lists.tsx             ← All accessible lists
+│   ├── create-list.tsx       ← Create new list
+│
+├── list/
+│   ├── [id].tsx              ← 🔥 List detail (core screen)
+│   ├── edit.tsx              ← (optional later)
+│
+├── invite/
+│   ├── [code].tsx            ← Join shared list via link/code
+│
+├── profile/
+│   ├── index.tsx             ← User settings + logout
+│
+components/
+│   ├── ListCard.tsx
+│   ├── ItemRow.tsx
+│   ├── AddItemInput.tsx
+│   ├── EmptyState.tsx
+│
+context/
+│   ├── AuthProvider.tsx
+│
+config/
+│   ├── firebase.ts
+│
+services/
+│   ├── lists.ts             ← Firestore list logic
+│   ├── items.ts             ← Firestore item logic
+│   ├── invites.ts           ← Invite system logic
+│
+hooks/
+│   ├── useAuth.ts
+│   ├── useLists.ts
+│
+constants/
+│   ├── theme.ts
+│
+types/
+│   ├── list.ts
+│   ├── item.ts
+│

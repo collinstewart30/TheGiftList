@@ -34,9 +34,27 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="explore"
+        name="create-list"
         options={{
-          title: "Explore",
+          title: "Create List",
+          tabBarIcon: ({ color }) => (
+            <View
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 6,
+                borderWidth: 2,
+                borderColor: color,
+              }}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="lists"
+        options={{
+          title: "My Lists",
           tabBarIcon: ({ color }) => (
             <View
               style={{
