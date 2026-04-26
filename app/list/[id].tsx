@@ -1,4 +1,6 @@
 import { auth, db } from "@/config/firebase";
+import * as Clipboard from "expo-clipboard";
+import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -32,6 +34,7 @@ type GiftItem = {
 type GiftList = {
   title: string;
   ownerId: string;
+  inviteCode: string;
 };
 
 export default function ListDetailScreen() {
@@ -52,9 +55,9 @@ export default function ListDetailScreen() {
 
   const isOwner = list?.ownerId === user?.uid;
 
-  // -----------------------
+  //-----------------------------------
   // Load list
-  // -----------------------
+  //-----------------------------------
   useEffect(() => {
     async function fetchList() {
       const ref = doc(db, "lists", listId);
@@ -68,72 +71,116 @@ export default function ListDetailScreen() {
     fetchList();
   }, [listId]);
 
-  // -----------------------
-  // Items realtime
-  // -----------------------
+  //-----------------------------------
+  // Realtime items listener
+  //-----------------------------------
   useEffect(() => {
     const ref = collection(db, "lists", listId, "items");
 
     const unsub = onSnapshot(ref, (snapshot) => {
-      setItems(
-        snapshot.docs.map((d) => ({
-          id: d.id,
-          ...(d.data() as Omit<GiftItem, "id">),
-        })),
-      );
+      const items = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as any),
+      }));
+
+      // 🔥 OWNER VIEW: strip ALL reservation data
+      const filteredItems = items.map((item) => {
+        if (isOwner) {
+          return {
+            id: item.id,
+            name: item.name,
+            link: item.link,
+            bought: false,
+            boughtBy: null,
+          };
+        }
+
+        return item;
+      });
+
+      setItems(filteredItems);
     });
 
     return unsub;
-  }, [listId]);
+  }, [listId, isOwner]);
 
-  // -----------------------
+  //-----------------------------------
+  // Share list
+  //-----------------------------------
+  const handleShareList = async () => {
+    if (!list?.inviteCode) return;
+
+    const inviteLink = Linking.createURL(`/invite/${list.inviteCode}`);
+
+    await Clipboard.setStringAsync(inviteLink);
+
+    Alert.alert("Invite Link Copied", `Share this link:\n\n${inviteLink}`);
+  };
+
+  //-----------------------------------
   // Add item
-  // -----------------------
+  //-----------------------------------
   const handleAddItem = async () => {
     if (!newItem.trim()) return;
 
-    await addDoc(collection(db, "lists", listId, "items"), {
-      name: newItem,
-      link: productLink,
-      bought: false,
-      boughtBy: null,
-    });
+    try {
+      await addDoc(collection(db, "lists", listId, "items"), {
+        name: newItem,
+        link: productLink,
+        bought: false,
+        boughtBy: null,
+      });
 
-    setNewItem("");
-    setProductLink("");
+      setNewItem("");
+      setProductLink("");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  // -----------------------
-  // Delete
-  // -----------------------
+  //-----------------------------------
+  // Delete item
+  //-----------------------------------
   const handleDelete = async (itemId: string) => {
-    await deleteDoc(doc(db, "lists", listId, "items", itemId));
+    try {
+      await deleteDoc(doc(db, "lists", listId, "items", itemId));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  // -----------------------
+  //-----------------------------------
   // Toggle bought
-  // -----------------------
+  //-----------------------------------
   const toggleBought = async (item: GiftItem) => {
     if (isOwner) return;
 
-    await updateDoc(doc(db, "lists", listId, "items", item.id), {
-      bought: !item.bought,
-      boughtBy: item.bought ? null : user?.email,
-    });
+    try {
+      await updateDoc(doc(db, "lists", listId, "items", item.id), {
+        bought: !item.bought,
+        boughtBy: item.bought ? null : user?.email,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  // -----------------------
+  //-----------------------------------
   // Save edit
-  // -----------------------
+  //-----------------------------------
   const saveEdit = async () => {
     if (!editingItem) return;
 
-    await updateDoc(doc(db, "lists", listId, "items", editingItem.id), {
-      name: editName,
-      link: editLink,
-    });
+    try {
+      await updateDoc(doc(db, "lists", listId, "items", editingItem.id), {
+        name: editName,
+        link: editLink,
+      });
 
-    setEditingItem(null);
+      setEditingItem(null);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (!list) {
@@ -146,18 +193,37 @@ export default function ListDetailScreen() {
 
   return (
     <View className="flex-1 bg-black pt-14 px-5">
-      {/* NAV HEADER */}
-      <View className="flex-row items-center mb-6">
-        <Pressable onPress={() => router.back()} className="mr-3">
-          <Text className="text-[#D90701] text-lg">← Back</Text>
+      {/* HEADER */}
+      <View className="flex-row items-center justify-between mb-4">
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack?.()) {
+              router.back();
+            } else {
+              router.push("/(tabs)/lists");
+            }
+          }}
+        >
+          <Text className="text-[#D90701] text-lg">← Lists</Text>
         </Pressable>
 
-        <Text className="text-white text-xl font-bold">{list.title}</Text>
+        {isOwner && (
+          <Pressable
+            onPress={handleShareList}
+            className="bg-[#D90701] px-4 py-2 rounded-xl"
+          >
+            <Text className="text-white font-semibold">Share</Text>
+          </Pressable>
+        )}
       </View>
 
-      {/* SUBTITLE */}
-      <Text className="text-gray-500 mb-6">
-        {isOwner ? "Manage your gift list" : "Reserve items for the recipient"}
+      {/* TITLE */}
+      <Text className="text-white text-3xl font-bold">{list.title}</Text>
+
+      <Text className="text-gray-500 mt-2 mb-6">
+        {isOwner
+          ? "Manage your gift list"
+          : "Reserve items before someone else does"}
       </Text>
 
       {/* ADD ITEM */}
@@ -195,7 +261,7 @@ export default function ListDetailScreen() {
       {/* ITEMS */}
       <FlatList
         data={items}
-        keyExtractor={(i) => i.id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingBottom: 80 }}
         ListEmptyComponent={
           <Text className="text-gray-600 text-center mt-10">No items yet</Text>
@@ -210,11 +276,12 @@ export default function ListDetailScreen() {
               <Text className="text-[#D90701] mt-1 text-sm">{item.link}</Text>
             )}
 
-            <Text className="text-gray-500 mt-2 text-sm">
-              {item.bought ? `Reserved by ${item.boughtBy}` : "Available"}
-            </Text>
+            {!isOwner && (
+              <Text className="text-gray-500 mt-2 text-sm">
+                {item.bought ? `Reserved by ${item.boughtBy}` : "Available"}
+              </Text>
+            )}
 
-            {/* ACTIONS */}
             <View className="mt-4 flex-row gap-3">
               {isOwner ? (
                 <>
@@ -232,7 +299,10 @@ export default function ListDetailScreen() {
                   <Pressable
                     onPress={() =>
                       Alert.alert("Delete", "Remove this item?", [
-                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Cancel",
+                          style: "cancel",
+                        },
                         {
                           text: "Delete",
                           style: "destructive",

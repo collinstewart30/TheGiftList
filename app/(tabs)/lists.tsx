@@ -82,9 +82,12 @@ export default function Lists() {
           const isOwner = item.ownerId === user?.uid;
 
           return (
-            <View className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl mb-4">
-              {/* Title */}
-              <Pressable onPress={() => router.push(`/list/${item.id}`)}>
+            <View className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl mb-4 flex-row items-center justify-between">
+              {/* LEFT SIDE */}
+              <Pressable
+                onPress={() => router.push(`/list/${item.id}`)}
+                className="flex-1 pr-4"
+              >
                 <Text className="text-white text-lg font-semibold">
                   {item.title}
                 </Text>
@@ -94,29 +97,27 @@ export default function Lists() {
                 </Text>
               </Pressable>
 
-              {/* Actions */}
+              {/* RIGHT SIDE (DELETE) */}
               {isOwner && (
-                <View className="mt-4 flex-row justify-end">
-                  <Pressable
-                    onPress={() =>
-                      Alert.alert(
-                        "Delete List",
-                        "This will permanently delete this list and all items.",
-                        [
-                          { text: "Cancel", style: "cancel" },
-                          {
-                            text: "Delete",
-                            style: "destructive",
-                            onPress: () => handleDelete(item.id),
-                          },
-                        ],
-                      )
-                    }
-                    className="bg-zinc-800 px-4 py-2 rounded-xl"
-                  >
-                    <Text className="text-white">Delete</Text>
-                  </Pressable>
-                </View>
+                <Pressable
+                  onPress={() =>
+                    Alert.alert(
+                      "Delete List",
+                      "This will permanently delete this list and all items.",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: () => handleDelete(item.id),
+                        },
+                      ],
+                    )
+                  }
+                  className="bg-zinc-800 px-4 py-2 rounded-xl"
+                >
+                  <Text className="text-white">Delete</Text>
+                </Pressable>
               )}
             </View>
           );

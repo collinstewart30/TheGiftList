@@ -1,0 +1,3 @@
+- add a priority type thing for the items (seen by owner and viewer but only editable by owner)
+- add optional price field for items (seen by owner and viewer but only editable by owner)
+- make links clickable

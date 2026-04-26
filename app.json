@@ -1,17 +1,23 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "Giftly Lists",
+    "slug": "giftlylists",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+
+    "scheme": "giftlylists",
+
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.giftlylists.app"
     },
+
     "android": {
+      "package": "com.giftlylists.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -21,10 +27,13 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
     },
+
     "plugins": [
       "expo-router",
       [
@@ -40,9 +49,9 @@
         }
       ]
     ],
+
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }
