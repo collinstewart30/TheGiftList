@@ -27,6 +27,7 @@ type GiftItem = {
   id: string;
   name: string;
   link?: string;
+  priority: "High" | "Medium" | "Low";
   bought: boolean;
   boughtBy: string | null;
 };
@@ -52,6 +53,11 @@ export default function ListDetailScreen() {
   const [editingItem, setEditingItem] = useState<GiftItem | null>(null);
   const [editName, setEditName] = useState("");
   const [editLink, setEditLink] = useState("");
+
+  const [priority, setPriority] = useState<"High" | "Medium" | "Low">("Medium");
+  const [editPriority, setEditPriority] = useState<"High" | "Medium" | "Low">(
+    "Medium",
+  );
 
   const isOwner = list?.ownerId === user?.uid;
 
@@ -87,9 +93,7 @@ export default function ListDetailScreen() {
       const filteredItems = items.map((item) => {
         if (isOwner) {
           return {
-            id: item.id,
-            name: item.name,
-            link: item.link,
+            ...item, // keep priority + everything else
             bought: false,
             boughtBy: null,
           };
@@ -127,12 +131,14 @@ export default function ListDetailScreen() {
       await addDoc(collection(db, "lists", listId, "items"), {
         name: newItem,
         link: productLink,
+        priority,
         bought: false,
         boughtBy: null,
       });
 
       setNewItem("");
       setProductLink("");
+      setPriority("Medium");
     } catch (error) {
       console.log(error);
     }
@@ -175,6 +181,7 @@ export default function ListDetailScreen() {
       await updateDoc(doc(db, "lists", listId, "items", editingItem.id), {
         name: editName,
         link: editLink,
+        priority: editPriority,
       });
 
       setEditingItem(null);
@@ -247,6 +254,22 @@ export default function ListDetailScreen() {
             className="bg-black text-white p-3 rounded-xl border border-zinc-800 mb-3"
           />
 
+          <Text className="text-white font-semibold mb-2">Priority</Text>
+
+          <View className="flex-row gap-2 mb-4">
+            {["High", "Medium", "Low"].map((level) => (
+              <Pressable
+                key={level}
+                onPress={() => setPriority(level as "High" | "Medium" | "Low")}
+                className={`px-4 py-2 rounded-xl ${
+                  priority === level ? "bg-[#D90701]" : "bg-zinc-800"
+                }`}
+              >
+                <Text className="text-white">{level}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           <Pressable
             onPress={handleAddItem}
             className="bg-[#D90701] py-3 rounded-xl"
@@ -272,6 +295,20 @@ export default function ListDetailScreen() {
               {item.name}
             </Text>
 
+            <View className="mt-2">
+              <Text
+                className={`text-sm font-medium ${
+                  item.priority === "High"
+                    ? "text-red-500"
+                    : item.priority === "Medium"
+                      ? "text-yellow-400"
+                      : "text-green-400"
+                }`}
+              >
+                {item.priority} Priority
+              </Text>
+            </View>
+
             {!!item.link && (
               <Text className="text-[#D90701] mt-1 text-sm">{item.link}</Text>
             )}
@@ -290,6 +327,7 @@ export default function ListDetailScreen() {
                       setEditingItem(item);
                       setEditName(item.name);
                       setEditLink(item.link || "");
+                      setEditPriority(item.priority);
                     }}
                     className="flex-1 bg-zinc-800 py-2 rounded-xl"
                   >
@@ -351,6 +389,24 @@ export default function ListDetailScreen() {
               onChangeText={setEditLink}
               className="bg-black text-white p-3 rounded-xl mb-4 border border-zinc-800"
             />
+
+            <Text className="text-white font-semibold mb-2">Priority</Text>
+
+            <View className="flex-row gap-2 mb-4">
+              {["High", "Medium", "Low"].map((level) => (
+                <Pressable
+                  key={level}
+                  onPress={() =>
+                    setEditPriority(level as "High" | "Medium" | "Low")
+                  }
+                  className={`px-4 py-2 rounded-xl ${
+                    editPriority === level ? "bg-[#D90701]" : "bg-zinc-800"
+                  }`}
+                >
+                  <Text className="text-white">{level}</Text>
+                </Pressable>
+              ))}
+            </View>
 
             <Pressable
               onPress={saveEdit}
